@@ -4,10 +4,10 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.musicstreamingapp.domain.model.Track
+import com.example.musicstreamingapp.domain.usecase.GetTracksUseCase
 import com.example.musicstreamingapp.ui.enums.PlaybackMode
 import com.example.musicstreamingapp.ui.enums.RepeatMode
 import com.example.musicstreamingapp.ui.service.AudioPlayer
-import com.example.musicstreamingapp.ui.service.JamSessionService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -27,11 +27,6 @@ sealed class AudioPlayerEvent {
     object ToggleRepeatMode : AudioPlayerEvent()
     object ToggleShuffling : AudioPlayerEvent()
     data class AddToQueue(val track: Track) : AudioPlayerEvent()
-
-    data class StartJamSession(val sessionId: Int) : AudioPlayerEvent()
-    data class JoinJamSession(val sessionId: Int) : AudioPlayerEvent()
-    data class UpdateJamPlayerState(val state: AudioPlayerState) : AudioPlayerEvent()
-    object LeaveJamSession : AudioPlayerEvent()
 }
 
 data class AudioPlayerState(
@@ -46,7 +41,7 @@ data class AudioPlayerState(
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     private val audioPlayer: AudioPlayer,
-    private val jamSessionService: JamSessionService
+    private val getTracksUseCase: GetTracksUseCase
 ) : ViewModel() {
     private val _playerState = MutableStateFlow(AudioPlayerState())
     val playerState: StateFlow<AudioPlayerState> = _playerState
@@ -65,6 +60,8 @@ class PlayerViewModel @Inject constructor(
         startProgressUpdates()
         observePlayerChanges()
     }
+
+
 
     private fun startProgressUpdates() {
         progressUpdateJob?.cancel()
@@ -114,21 +111,6 @@ class PlayerViewModel @Inject constructor(
             AudioPlayerEvent.ToggleRepeatMode -> toggleRepeatMode()
             AudioPlayerEvent.ToggleShuffling -> toggleShuffling()
             is AudioPlayerEvent.AddToQueue -> addToQueue(event.track)
-            is AudioPlayerEvent.StartJamSession -> {
-                jamSessionService.startJamSession(event.sessionId)
-                _screenState.value = ScreenState.JamSession(event.sessionId)
-            }
-            is AudioPlayerEvent.JoinJamSession -> {
-                jamSessionService.joinJamSession(event.sessionId)
-                _screenState.value = ScreenState.JamSession(event.sessionId)
-            }
-            AudioPlayerEvent.LeaveJamSession -> {
-                jamSessionService.leaveJamSession()
-                _screenState.value = ScreenState.TrackList
-            }
-            is AudioPlayerEvent.UpdateJamPlayerState -> {
-                jamSessionService.updatePlayerState(event.state)
-            }
         }
     }
 

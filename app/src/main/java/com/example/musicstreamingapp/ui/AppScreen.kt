@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.BottomSheetScaffoldState
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetValue
@@ -54,6 +55,11 @@ fun AppScreen(
             sheetPeekHeight = 120.dp,
         ) { innerPadding ->
             Box{
+                Button(
+                    onClick = {}
+                ) {
+
+                }
                 content(innerPadding)
             }
         }
